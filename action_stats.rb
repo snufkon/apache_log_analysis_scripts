@@ -1,26 +1,39 @@
 require 'date'
 
 class ApacheLog
-  attr_reader :total_request, :total_processing_time
+  attr_reader :total_request
   
   def initialize
     @total_request = 0
     @total_processing_time = 0.0
     @status_codes = {}
+    @processing_time = {}
   end
 
   def add(status_code, request_processing_time)
     @total_request += 1
-    @total_processing_time += request_processing_time.to_i / 1000.0   # マイクロ秒をミリ秒単位に変換
-
+    @processing_time[status_code] ||= request_processing_time.to_i / 1000.0 # マイクロ秒をミリ秒単位に変換
+    @processing_time[status_code] += request_processing_time.to_i / 1000.0
     @status_codes[status_code] ||= 0
     @status_codes[status_code] += 1
+  end
+
+  def total_processing_time
+    sum = 0
+    @processing_time.each_value {|x| sum += x }
+    return sum
   end
 
   def request_by_status_code(code)
     return 0 if @status_codes[code].nil?
     return @status_codes[code]
   end
+
+  def processing_time_by_status_code(code)
+    return 0 if @status_codes[code].nil?
+    return @processing_time[code]
+  end
+  
 end
 
 def read_logs
@@ -58,15 +71,22 @@ def read_logs
 end
 
 def output_path_stats(paths, status_codes)
-  puts "path,TR,TPT,#{status_codes.join(',')}"
+  #puts "Path,TR,TPT,#{status_codes.join(',')}"
+  print "Path,"
+  print "TR,"
+  print "TPT,"
+  status_codes.each { |code| print "PT(#{code})," }
+  status_codes.each { |code| print "R(#{code})," }
+  print "\n"
     
   paths.each_pair do |path, log|
-
-    status_count = []
+    request_count = []
+    processing_time = []
     status_codes.each do |code|
-      status_count << log.request_by_status_code(code)
+      request_count << log.request_by_status_code(code)
+      processing_time << log.processing_time_by_status_code(code)
     end
-    puts [path, log.total_request, log.total_processing_time, status_count].flatten.join(',')
+    puts [path, log.total_request, log.total_processing_time, processing_time, request_count].flatten.join(',')
   end
 end
 
