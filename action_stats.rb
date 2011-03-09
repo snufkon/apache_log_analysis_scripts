@@ -74,8 +74,8 @@ def output_path_stats(paths, status_codes)
   #puts "Path,TR,TPT,#{status_codes.join(',')}"
   print "Path,"
   print "TR,"
-  print "TPT,"
-  status_codes.each { |code| print "PT(#{code})," }
+  print "TPT[ms],"
+  status_codes.each { |code| print "PT(#{code})[ms]," }
   status_codes.each { |code| print "R(#{code})," }
   print "\n"
     
