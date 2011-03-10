@@ -5,15 +5,18 @@ class ApacheLog
   
   def initialize
     @total_request = 0
-    @total_processing_time = 0.0
     @status_codes = {}
     @processing_time = {}
   end
 
   def add(status_code, request_processing_time)
     @total_request += 1
-    @processing_time[status_code] ||= request_processing_time.to_i / 1000.0 # マイクロ秒をミリ秒単位に変換
-    @processing_time[status_code] += request_processing_time.to_i / 1000.0
+    if @processing_time[status_code].nil?
+      @processing_time[status_code] = request_processing_time.to_i / 1000.0 # マイクロ秒をミリ秒単位に変換
+    else
+      @processing_time[status_code] += request_processing_time.to_i / 1000.0 # マイクロ秒をミリ秒単位に変換
+    end
+    
     @status_codes[status_code] ||= 0
     @status_codes[status_code] += 1
   end
